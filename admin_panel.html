@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MS HOST — لوحة المسؤول</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#080810;--bg2:#0d0d1c;--bg3:#12121f;
+  --accent:#6366f1;--accent2:#818cf8;--cyan:#22d3ee;--purple:#a78bfa;
+  --green:#22d3ee;--red:#f43f5e;--amber:#f59e0b;
+  --border:rgba(99,102,241,0.12);--border2:rgba(99,102,241,0.3);
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;
+  --card:rgba(13,13,28,0.85);--radius:14px;
+}
+body{font-family:'Tajawal','Inter',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;overflow-x:hidden}
+
+/* SIDEBAR */
+.sidebar{width:240px;min-height:100vh;background:var(--bg2);border-left:1px solid var(--border);position:fixed;right:0;top:0;bottom:0;z-index:50;display:flex;flex-direction:column}
+.sb-top{padding:20px 18px;border-bottom:1px solid var(--border)}
+.sb-brand{display:flex;align-items:center;gap:10px}
+.sb-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#4f46e5);display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:.95rem;box-shadow:0 0 20px rgba(99,102,241,.4)}
+.sb-title{font-size:.95rem;font-weight:800}
+.admin-chip{display:inline-flex;align-items:center;gap:5px;background:rgba(99,102,241,.1);border:1px solid var(--border2);border-radius:100px;padding:3px 10px;font-size:.7rem;font-weight:600;color:var(--accent2);margin-top:6px}
+.sb-nav{flex:1;padding:14px 10px;overflow-y:auto}
+.sb-nav::-webkit-scrollbar{width:4px}.sb-nav::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.nav-section{font-size:.65rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:0 10px;margin:12px 0 6px}
+.nav-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:var(--text2);cursor:pointer;transition:.2s;font-size:.87rem;font-weight:500}
+.nav-item i{width:18px;text-align:center}
+.nav-item:hover{background:rgba(99,102,241,.08);color:var(--text)}
+.nav-item.active{background:rgba(99,102,241,.14);color:var(--accent2)}
+.sb-foot{padding:12px;border-top:1px solid var(--border)}
+.sb-user{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px}
+.sb-avatar{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--red),#be185d);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:.85rem}
+
+/* MAIN */
+.main{flex:1;margin-right:240px;min-height:100vh;display:flex;flex-direction:column}
+.topbar{height:60px;background:rgba(8,8,16,.9);border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;backdrop-filter:blur(20px)}
+.tb-title{font-size:1rem;font-weight:700;display:flex;align-items:center;gap:10px}
+.tb-right{display:flex;align-items:center;gap:12px}
+.admin-badge{background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.25);color:#fb7185;padding:5px 14px;border-radius:100px;font-size:.75rem;font-weight:700}
+.logout-btn{background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.25);color:#fb7185;padding:7px 16px;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:'Tajawal',sans-serif;display:flex;align-items:center;gap:6px;transition:.2s}
+.logout-btn:hover{background:rgba(244,63,94,.2)}
+
+/* PAGE */
+.page{padding:28px;flex:1}
+.tab-pane{display:none;animation:fadeIn .25s ease}.tab-pane.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:.25s}
+.stat-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.sc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.sc-lbl{font-size:.72rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.sc-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.95rem}
+.si-b{background:rgba(99,102,241,.14);color:var(--accent2)}
+.si-g{background:rgba(34,211,238,.14);color:var(--green)}
+.si-a{background:rgba(245,158,11,.14);color:var(--amber)}
+.si-c{background:rgba(34,211,238,.14);color:var(--cyan)}
+.sc-val{font-size:1.7rem;font-weight:800}
+.sc-change{font-size:.75rem;color:var(--green);margin-top:6px}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px}
+.card-title{font-size:.93rem;font-weight:700;display:flex;align-items:center;gap:9px;margin-bottom:20px;color:var(--text)}
+.card-title i{color:var(--accent2)}
+
+/* TABLE */
+.data-table{width:100%;border-collapse:collapse;font-size:.83rem}
+.data-table th{text-align:right;padding:12px 14px;color:var(--text3);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+.data-table td{padding:14px;border-bottom:1px solid var(--border);vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:rgba(99,102,241,.04)}
+.badge{display:inline-block;padding:3px 10px;border-radius:100px;font-size:.72rem;font-weight:600}
+.badge-admin{background:rgba(244,63,94,.12);border:1px solid rgba(244,63,94,.25);color:#fb7185}
+.badge-user{background:rgba(99,102,241,.1);border:1px solid var(--border2);color:var(--accent2)}
+.badge-basic{background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.2);color:var(--green)}
+.badge-premium{background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2);color:var(--purple)}
+.badge-ultimate{background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.2);color:var(--cyan)}
+.tbl-action{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:7px;padding:5px 11px;font-size:.72rem;cursor:pointer;color:var(--text2);transition:.15s;font-family:'Tajawal',sans-serif}
+.tbl-action:hover.del{border-color:var(--red);color:var(--red);background:rgba(244,63,94,.1)}
+.tbl-action:hover.edit{border-color:var(--accent2);color:var(--accent2);background:rgba(99,102,241,.1)}
+
+/* FORM */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:.75rem;font-weight:600;color:var(--text3);margin-bottom:7px;text-transform:uppercase;letter-spacing:.5px}
+.inp{width:100%;background:rgba(0,0,0,.45);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:.9rem;outline:none;transition:.2s}
+.inp:focus{border-color:var(--accent2);background:rgba(99,102,241,.04)}
+.inp::placeholder{color:var(--text3)}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#4f46e5);border:none;border-radius:10px;padding:11px 22px;color:#fff;font-weight:700;font-size:.88rem;cursor:pointer;font-family:'Tajawal',sans-serif;display:inline-flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(99,102,241,.35);transition:.2s}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(99,102,241,.5)}
+.btn-danger{background:rgba(244,63,94,.12);border:1px solid rgba(244,63,94,.25);border-radius:10px;padding:11px 22px;color:#fb7185;font-weight:700;font-size:.88rem;cursor:pointer;font-family:'Tajawal',sans-serif;display:inline-flex;align-items:center;gap:8px;transition:.2s}
+.btn-danger:hover{background:rgba(244,63,94,.22)}
+
+/* SEARCH */
+.search-wrap{position:relative;margin-bottom:18px}
+.search-inp{width:100%;background:rgba(0,0,0,.45);border:1px solid var(--border);border-radius:10px;padding:11px 44px 11px 14px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:.88rem;outline:none;transition:.2s}
+.search-inp:focus{border-color:var(--accent2)}
+.search-icon{position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--text3)}
+
+/* ALERT */
+.alert{display:none;border-radius:10px;padding:11px 14px;font-size:.83rem;margin-bottom:14px;align-items:center;gap:9px}
+.alert.show{display:flex}
+.alert.success{background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.2);color:#67e8f9}
+.alert.error{background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.2);color:#fb7185}
+
+/* CHART */
+.chart-box{background:var(--bg3);border-radius:12px;padding:18px;margin-top:16px}
+.chart-box canvas{max-height:240px}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:28px;width:500px;max-width:95vw;animation:mIn .25s ease}
+@keyframes mIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.modal-title{font-size:.95rem;font-weight:700;display:flex;align-items:center;gap:8px}
+.modal-close{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:.2s}
+.modal-close:hover{background:rgba(244,63,94,.1);color:var(--red)}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bg2);border:1px solid var(--border2);border-radius:100px;padding:10px 22px;font-size:.83rem;z-index:2000;transition:.3s;opacity:0;display:flex;align-items:center;gap:9px;box-shadow:0 8px 32px rgba(0,0,0,.5);pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.success{border-color:rgba(34,211,238,.35);color:var(--green)}
+.toast.error{border-color:rgba(244,63,94,.35);color:#fb7185}
+.toast.info{border-color:var(--border2);color:var(--accent2)}
+
+/* Plan cards */
+.plans-admin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}
+.plan-admin-card{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:20px;position:relative}
+.plan-admin-card:hover{border-color:var(--border2)}
+.pan-name{font-size:1rem;font-weight:700;margin-bottom:4px}
+.pan-price{font-size:1.4rem;font-weight:800;color:var(--accent2);margin-bottom:12px}
+.pan-detail{font-size:.8rem;color:var(--text3);line-height:1.8}
+.pan-delete{position:absolute;top:14px;left:14px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:.85rem;transition:.2s}
+.pan-delete:hover{color:var(--red)}
+
+@media(max-width:900px){.main{margin-right:0}.sidebar{display:none}.stats-row{grid-template-columns:1fr 1fr}.form-row{grid-template-columns:1fr}.plans-admin-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.stats-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-top">
+    <div class="sb-brand"><div class="sb-mark">M</div><span class="sb-title">MS HOST</span></div>
+    <div class="admin-chip"><i class="fas fa-shield-halved"></i> لوحة المسؤول</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-section">الإدارة</div>
+    <div class="nav-item active" onclick="showTab('dashboard')"><i class="fas fa-chart-pie"></i> نظرة عامة</div>
+    <div class="nav-item" onclick="showTab('users')"><i class="fas fa-users"></i> المستخدمون</div>
+    <div class="nav-item" onclick="showTab('servers')"><i class="fas fa-server"></i> الخوادم</div>
+    <div class="nav-item" onclick="showTab('plans')"><i class="fas fa-layer-group"></i> الخطط</div>
+    <div class="nav-item" onclick="showTab('analytics')"><i class="fas fa-chart-line"></i> التحليلات</div>
+    <div class="nav-section">الإعدادات</div>
+    <div class="nav-item" onclick="showTab('settings')"><i class="fas fa-sliders"></i> الإعدادات</div>
+  </nav>
+  <div class="sb-foot">
+    <div class="sb-user"><div class="sb-avatar">A</div><span style="font-size:.78rem;color:var(--text2)">Admin</span></div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="tb-title"><i class="fas fa-shield-halved" style="color:var(--red)"></i> <span id="tabTitle">نظرة عامة</span></div>
+    <div class="tb-right">
+      <span class="admin-badge"><i class="fas fa-crown"></i> مسؤول</span>
+      <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
+    </div>
+  </div>
+
+  <div class="page">
+    <!-- DASHBOARD -->
+    <div class="tab-pane active" id="tab-dashboard">
+      <div class="stats-row">
+        <div class="stat-card"><div class="sc-top"><div class="sc-lbl">المستخدمون</div><div class="sc-icon si-b"><i class="fas fa-users"></i></div></div><div class="sc-val" id="totalUsers">—</div><div class="sc-change"><i class="fas fa-arrow-trend-up"></i> إجمالي المسجلين</div></div>
+        <div class="stat-card"><div class="sc-top"><div class="sc-lbl">الخوادم الكلية</div><div class="sc-icon si-c"><i class="fas fa-server"></i></div></div><div class="sc-val" id="totalServers">—</div><div class="sc-change"><i class="fas fa-circle-check"></i> في النظام</div></div>
+        <div class="stat-card"><div class="sc-top"><div class="sc-lbl">قيد التشغيل</div><div class="sc-icon si-g"><i class="fas fa-play-circle"></i></div></div><div class="sc-val" id="activeServers">—</div><div class="sc-change"><i class="fas fa-signal"></i> نشطة الآن</div></div>
+        <div class="stat-card"><div class="sc-top"><div class="sc-lbl">المساحة الكلية</div><div class="sc-icon si-a"><i class="fas fa-hdd"></i></div></div><div class="sc-val" id="totalDisk">—</div><div class="sc-change"><i class="fas fa-database"></i> مستخدمة</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div class="card">
+          <div class="card-title"><i class="fas fa-chart-area"></i> موارد النظام</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div style="text-align:center;background:var(--bg3);border-radius:10px;padding:14px">
+              <div style="font-size:1.4rem;font-weight:800;color:var(--cyan)" id="sysCPU">—</div>
+              <div style="font-size:.72rem;color:var(--text3);margin-top:4px">CPU</div>
+            </div>
+            <div style="text-align:center;background:var(--bg3);border-radius:10px;padding:14px">
+              <div style="font-size:1.4rem;font-weight:800;color:var(--accent2)" id="sysRAM">—</div>
+              <div style="font-size:.72rem;color:var(--text3);margin-top:4px">RAM</div>
+            </div>
+            <div style="text-align:center;background:var(--bg3);border-radius:10px;padding:14px">
+              <div style="font-size:1.4rem;font-weight:800;color:var(--amber)" id="sysDisk">—</div>
+              <div style="font-size:.72rem;color:var(--text3);margin-top:4px">Disk</div>
+            </div>
+          </div>
+          <div class="chart-box"><canvas id="resourceChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="fas fa-clock"></i> آخر النشاطات</div>
+          <div id="activityFeed" style="font-size:.83rem;color:var(--text2);line-height:2">جاري التحميل...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="tab-pane" id="tab-users">
+      <div class="card">
+        <div class="card-title"><i class="fas fa-user-plus"></i> إضافة مستخدم جديد</div>
+        <div class="alert success" id="userAlert"><i class="fas fa-check-circle"></i> <span id="userAlertMsg"></span></div>
+        <div class="form-row">
+          <div class="field"><label>البريد الإلكتروني</label><input class="inp" id="uEmail" placeholder="user@example.com" type="email"></div>
+          <div class="field"><label>كلمة المرور</label><input class="inp" id="uPass" placeholder="كلمة المرور" type="password"></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>عدد الخوادم</label><input class="inp" id="uMaxSrv" type="number" value="5" min="1"></div>
+          <div class="field"><label>مدة الصلاحية (يوم)</label><input class="inp" id="uExpiry" type="number" value="365" min="1"></div>
+        </div>
+        <button class="btn-primary" onclick="createUser()"><i class="fas fa-user-plus"></i> إضافة المستخدم</button>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-list"></i> قائمة المستخدمين</div>
+        <div class="search-wrap">
+          <input class="search-inp" id="userSearch" placeholder="بحث بالبريد..." oninput="filterUsers()">
+          <i class="fas fa-search search-icon"></i>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>البريد الإلكتروني</th><th>الخطة</th><th>الخوادم</th><th>الصلاحية</th><th>آخر دخول</th><th>الدور</th><th>إجراءات</th></tr></thead>
+            <tbody id="usersBody"><tr><td colspan="7" style="text-align:center;color:var(--text3);padding:40px">جاري التحميل...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SERVERS -->
+    <div class="tab-pane" id="tab-servers">
+      <div class="card">
+        <div class="card-title"><i class="fas fa-server"></i> جميع الخوادم</div>
+        <div class="search-wrap">
+          <input class="search-inp" id="srvSearch" placeholder="بحث بالاسم أو المالك..." oninput="filterServers()">
+          <i class="fas fa-search search-icon"></i>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>الاسم</th><th>المالك</th><th>الحالة</th><th>المنفذ</th><th>الخطة</th><th>تاريخ الإنشاء</th><th>إجراءات</th></tr></thead>
+            <tbody id="serversBody"><tr><td colspan="7" style="text-align:center;color:var(--text3);padding:40px">جاري التحميل...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLANS -->
+    <div class="tab-pane" id="tab-plans">
+      <div class="card">
+        <div class="card-title"><i class="fas fa-plus-circle"></i> إضافة خطة جديدة</div>
+        <div class="alert success" id="planAlert"><i class="fas fa-check-circle"></i> <span id="planAlertMsg"></span></div>
+        <div class="form-row">
+          <div class="field"><label>معرف الخطة</label><input class="inp" id="pId" placeholder="مثال: gold"></div>
+          <div class="field"><label>اسم الخطة</label><input class="inp" id="pName" placeholder="خطة ذهبية"></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>السعر ($/شهر)</label><input class="inp" id="pPrice" type="number" value="0" min="0" step="0.01"></div>
+          <div class="field"><label>عدد الخوادم</label><input class="inp" id="pMaxSrv" type="number" value="10" min="1"></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>التخزين (MB)</label><input class="inp" id="pStorage" type="number" value="512000"></div>
+          <div class="field"><label>الرام (MB)</label><input class="inp" id="pRam" type="number" value="1024"></div>
+        </div>
+        <div class="field" style="max-width:200px"><label>نوى CPU</label><input class="inp" id="pCpu" type="number" value="1" min="0.1" step="0.1"></div>
+        <button class="btn-primary" onclick="addPlan()"><i class="fas fa-plus"></i> إضافة الخطة</button>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-layer-group"></i> الخطط الحالية</div>
+        <div class="plans-admin-grid" id="plansGrid">جاري التحميل...</div>
+      </div>
+    </div>
+
+    <!-- ANALYTICS -->
+    <div class="tab-pane" id="tab-analytics">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div class="card">
+          <div class="card-title"><i class="fas fa-chart-donut"></i> توزيع الخطط</div>
+          <div class="chart-box"><canvas id="plansChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="fas fa-chart-bar"></i> حالة الخوادم</div>
+          <div class="chart-box"><canvas id="statusChart"></canvas></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-chart-line"></i> نشاط النظام</div>
+        <div class="chart-box"><canvas id="activityChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="tab-pane" id="tab-settings">
+      <div class="card">
+        <div class="card-title"><i class="fas fa-gear"></i> إعدادات النظام</div>
+        <p style="color:var(--text3);font-size:.85rem">قريباً — سيتم إضافة المزيد من الإعدادات</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal-overlay" id="editUserModal">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title"><i class="fas fa-user-pen" style="color:var(--accent2)"></i> تعديل المستخدم</div><div class="modal-close" onclick="closeM('editUserModal')"><i class="fas fa-xmark"></i></div></div>
+    <input type="hidden" id="editEmail">
+    <div class="form-row">
+      <div class="field"><label>عدد الخوادم</label><input class="inp" id="editMaxSrv" type="number" min="1"></div>
+      <div class="field"><label>أيام الصلاحية</label><input class="inp" id="editExpiry" type="number" min="1"></div>
+    </div>
+    <div class="field">
+      <label>حجم التخزين (MB)</label>
+      <input class="inp" id="editStorage" type="number" min="1024">
+    </div>
+    <button class="btn-primary" style="width:100%;padding:12px;margin-top:4px" onclick="saveUser()"><i class="fas fa-save"></i> حفظ التغييرات</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let allUsers = [], allServers = [], resourceChart, plansChart, statusChart, actChart;
+
+async function init(){
+  try{
+    const r = await fetch('/api/current_user');
+    const d = await r.json();
+    if(!d.success||!d.is_admin){ location.href='/login'; return; }
+  }catch(e){ location.href='/login'; return; }
+  loadDashboard();
+}
+
+function showTab(tab){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  event.currentTarget.classList.add('active');
+  const titles={dashboard:'نظرة عامة',users:'المستخدمون',servers:'الخوادم',plans:'الخطط',analytics:'التحليلات',settings:'الإعدادات'};
+  document.getElementById('tabTitle').textContent = titles[tab]||tab;
+  if(tab==='dashboard') loadDashboard();
+  else if(tab==='users') loadUsers();
+  else if(tab==='servers') loadServers();
+  else if(tab==='plans') loadPlans();
+  else if(tab==='analytics') loadAnalytics();
+}
+
+async function loadDashboard(){
+  try{
+    const [um, sm, met] = await Promise.all([
+      fetch('/api/admin/users').then(r=>r.json()),
+      fetch('/api/admin/servers').then(r=>r.json()).catch(()=>({servers:[]})),
+      fetch('/api/system/metrics').then(r=>r.json())
+    ]);
+    const users = um.users||[];
+    document.getElementById('totalUsers').textContent = users.length;
+    document.getElementById('sysCPU').textContent = (met.cpu||0)+'%';
+    document.getElementById('sysRAM').textContent = (met.memory||0)+'%';
+    document.getElementById('sysDisk').textContent = (met.disk||0)+'%';
+
+    // load all servers via admin users
+    const servers = sm.servers||[];
+    const activeSrv = servers.filter(s=>s.status==='Running').length;
+    const totalDisk = servers.reduce((sum,s)=>sum+(s.disk_used||0),0);
+    document.getElementById('totalServers').textContent = servers.length;
+    document.getElementById('activeServers').textContent = activeSrv;
+    document.getElementById('totalDisk').textContent = totalDisk.toFixed(1)+' MB';
+
+    const feed = document.getElementById('activityFeed');
+    feed.innerHTML = users.slice(-5).reverse().map(u=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(99,102,241,.12);display:flex;align-items:center;justify-content:center;font-size:.82rem;color:var(--accent2)">${u.email[0].toUpperCase()}</div>
+        <div><div style="font-weight:500;font-size:.82rem">${esc(u.email)}</div><div style="font-size:.72rem;color:var(--text3)">${u.last_login?'آخر دخول: '+u.last_login.slice(0,16):'لم يسجل دخولاً بعد'}</div></div>
+        <span class="badge badge-${u.plan||'basic'}" style="margin-right:auto">${planL(u.plan)}</span>
+      </div>`).join('');
+
+    // resource chart
+    if(resourceChart) resourceChart.destroy();
+    const rCtx = document.getElementById('resourceChart').getContext('2d');
+    resourceChart = new Chart(rCtx,{type:'bar',data:{labels:['CPU','RAM','Disk'],datasets:[{data:[met.cpu,met.memory,met.disk],backgroundColor:['rgba(34,211,238,.4)','rgba(99,102,241,.4)','rgba(245,158,11,.4)'],borderColor:['rgba(34,211,238,.8)','rgba(99,102,241,.8)','rgba(245,158,11,.8)'],borderWidth:1,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,max:100,grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#64748b',callback:v=>v+'%'}},x:{grid:{display:false},ticks:{color:'#94a3b8'}}}}});
+  }catch(e){ console.error(e); }
+}
+
+async function loadUsers(){
+  try{
+    const r = await fetch('/api/admin/users');
+    const d = await r.json();
+    allUsers = d.users||[];
+    renderUsers(allUsers);
+  }catch(e){}
+}
+
+function renderUsers(users){
+  const tbody = document.getElementById('usersBody');
+  if(!users.length){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:40px">لا يوجد مستخدمون</td></tr>'; return; }
+  tbody.innerHTML = users.map(u=>`
+    <tr>
+      <td style="font-weight:500">${esc(u.email)}</td>
+      <td><span class="badge badge-${u.plan||'basic'}">${planL(u.plan)}</span></td>
+      <td>${u.max_servers||1}</td>
+      <td>${u.expiry_days||365} يوم</td>
+      <td style="font-size:.78rem;color:var(--text3)">${u.last_login?u.last_login.slice(0,16):'لم يسجل'}</td>
+      <td><span class="badge ${u.is_admin?'badge-admin':'badge-user'}">${u.is_admin?'مسؤول':'مستخدم'}</span></td>
+      <td style="display:flex;gap:6px">
+        <button class="tbl-action edit" onclick="openEditUser(${JSON.stringify(u)})"><i class="fas fa-pen"></i></button>
+        ${!u.is_admin?`<button class="tbl-action del" onclick="deleteUser('${esc(u.email)}')"><i class="fas fa-trash"></i></button>`:''}
+      </td>
+    </tr>`).join('');
+}
+
+function filterUsers(){
+  const q = document.getElementById('userSearch').value.toLowerCase();
+  renderUsers(q ? allUsers.filter(u=>u.email.toLowerCase().includes(q)) : allUsers);
+}
+
+async function createUser(){
+  const email=document.getElementById('uEmail').value.trim();
+  const pass=document.getElementById('uPass').value;
+  const maxSrv=parseInt(document.getElementById('uMaxSrv').value)||5;
+  const expiry=parseInt(document.getElementById('uExpiry').value)||365;
+  if(!email||!pass){ toast('أدخل جميع البيانات','error'); return; }
+  const r=await fetch('/api/admin/create-user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass,max_servers:maxSrv,expiry_days:expiry})});
+  const d=await r.json();
+  const al=document.getElementById('userAlert');
+  const msg=document.getElementById('userAlertMsg');
+  msg.textContent=d.message||(d.success?'تم':'فشل');
+  al.className='alert '+(d.success?'success':'error')+' show';
+  if(d.success){ loadUsers(); document.getElementById('uEmail').value=''; document.getElementById('uPass').value=''; }
+  setTimeout(()=>al.classList.remove('show'),3000);
+}
+
+function openEditUser(u){
+  document.getElementById('editEmail').value=u.email;
+  document.getElementById('editMaxSrv').value=u.max_servers||5;
+  document.getElementById('editExpiry').value=u.expiry_days||365;
+  document.getElementById('editStorage').value=u.storage_limit||102400;
+  openM('editUserModal');
+}
+
+async function saveUser(){
+  const email=document.getElementById('editEmail').value;
+  const maxSrv=parseInt(document.getElementById('editMaxSrv').value)||5;
+  const expiry=parseInt(document.getElementById('editExpiry').value)||365;
+  const storage=parseInt(document.getElementById('editStorage').value)||102400;
+  const r=await fetch('/api/admin/update-user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,max_servers:maxSrv,expiry_days:expiry,storage_limit:storage})});
+  const d=await r.json();
+  toast(d.message||(d.success?'تم التحديث':'فشل'), d.success?'success':'error');
+  if(d.success){ closeM('editUserModal'); loadUsers(); }
+}
+
+async function deleteUser(email){
+  if(!confirm(`حذف المستخدم "${email}" وجميع خوادمه؟`)) return;
+  const r=await fetch('/api/admin/delete-user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+  const d=await r.json();
+  toast(d.message||(d.success?'تم الحذف':'فشل'), d.success?'success':'error');
+  if(d.success) loadUsers();
+}
+
+async function loadServers(){
+  try{
+    const r=await fetch('/api/admin/servers');
+    const d=await r.json();
+    allServers=d.servers||[];
+    renderServers(allServers);
+  }catch(e){}
+}
+
+function renderServers(servers){
+  const tbody=document.getElementById('serversBody');
+  if(!servers.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:40px">لا توجد خوادم</td></tr>';return;}
+  tbody.innerHTML=servers.map(s=>`<tr><td style="font-weight:500">${esc(s.title||'—')}</td><td>${esc(s.owner||'—')}</td><td><span class="badge ${s.status==='Running'?'badge-basic':'badge-user'}">${s.status==='Running'?'يعمل':'متوقف'}</span></td><td>${s.port||'—'}</td><td>${planL(s.plan)}</td><td style="font-size:.78rem;color:var(--text3)">${s.created_at?s.created_at.slice(0,16):'—'}</td><td>${(s.disk_used||0).toFixed(1)} MB</td></tr>`).join('');
+}
+
+function filterServers(){
+  const q=document.getElementById('srvSearch').value.toLowerCase();
+  renderServers(q?allServers.filter(s=>(s.title+' '+s.owner).toLowerCase().includes(q)):allServers);
+}
+
+async function loadPlans(){
+  try{
+    const r=await fetch('/api/plans');
+    const d=await r.json();
+    const plans=d.plans||{};
+    const grid=document.getElementById('plansGrid');
+    if(!Object.keys(plans).length){ grid.textContent='لا توجد خطط'; return; }
+    grid.innerHTML=Object.entries(plans).map(([id,p])=>`
+      <div class="plan-admin-card">
+        <button class="pan-delete" title="حذف" onclick="deletePlanItem('${id}')"><i class="fas fa-trash"></i></button>
+        <div class="pan-name">${esc(p.name||id)}</div>
+        <div class="pan-price">${p.price==0?'مجاني':p.price+'$'}</div>
+        <div class="pan-detail">
+          ${p.max_servers} خوادم<br>
+          ${Math.round((p.storage||0)/1024)} GB تخزين<br>
+          ${p.ram||512} MB RAM<br>
+          ${p.cpu||0.5} نواة CPU
+        </div>
+      </div>`).join('');
+  }catch(e){}
+}
+
+async function addPlan(){
+  const data={
+    plan_id:document.getElementById('pId').value.trim(),
+    name:document.getElementById('pName').value.trim(),
+    price:parseFloat(document.getElementById('pPrice').value)||0,
+    max_servers:parseInt(document.getElementById('pMaxSrv').value)||5,
+    storage:parseInt(document.getElementById('pStorage').value)||512000,
+    ram:parseInt(document.getElementById('pRam').value)||1024,
+    cpu:parseFloat(document.getElementById('pCpu').value)||1
+  };
+  if(!data.plan_id||!data.name){ toast('أدخل جميع البيانات','error'); return; }
+  const r=await fetch('/api/admin/add-plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  const d=await r.json();
+  const al=document.getElementById('planAlert');
+  document.getElementById('planAlertMsg').textContent=d.message||(d.success?'تم':'فشل');
+  al.className='alert '+(d.success?'success':'error')+' show';
+  if(d.success) loadPlans();
+  setTimeout(()=>al.classList.remove('show'),3000);
+}
+
+function deletePlanItem(id){
+  toast('حذف الخطط يتطلب تطوير API إضافي','info');
+}
+
+async function loadAnalytics(){
+  try{
+    const [ur, sr, mr] = await Promise.all([
+      fetch('/api/admin/users').then(r=>r.json()),
+      fetch('/api/admin/servers').then(r=>r.json()),
+      fetch('/api/system/metrics').then(r=>r.json())
+    ]);
+    const users=ur.users||[];
+    const serverData=sr.servers||[];
+    const planCounts={};
+    users.forEach(u=>{ planCounts[u.plan||'basic']=(planCounts[u.plan||'basic']||0)+1; });
+    
+    if(plansChart) plansChart.destroy();
+    const pc=document.getElementById('plansChart').getContext('2d');
+    plansChart=new Chart(pc,{type:'doughnut',data:{labels:Object.keys(planCounts).map(planL),datasets:[{data:Object.values(planCounts),backgroundColor:['rgba(34,211,238,.6)','rgba(139,92,246,.6)','rgba(34,211,238,.6)','rgba(245,158,11,.6)'],borderWidth:0}]},options:{responsive:true,plugins:{legend:{labels:{color:'#94a3b8',font:{size:12}}}}}});
+
+    if(statusChart) statusChart.destroy();
+    const sc=document.getElementById('statusChart').getContext('2d');
+    statusChart=new Chart(sc,{type:'bar',data:{labels:['يعمل','متوقف','خطأ'],datasets:[{data:[serverData.filter(s=>s.status==='Running').length,serverData.filter(s=>s.status!=='Running').length,0],backgroundColor:['rgba(34,211,238,.4)','rgba(99,102,241,.4)','rgba(244,63,94,.4)'],borderColor:['rgba(34,211,238,.8)','rgba(99,102,241,.8)','rgba(244,63,94,.8)'],borderWidth:1,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#64748b'}},x:{grid:{display:false},ticks:{color:'#94a3b8'}}}}});
+
+    if(actChart) actChart.destroy();
+    const ac=document.getElementById('activityChart').getContext('2d');
+    const labels=['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'];
+    const vals=labels.map(()=>Math.floor(Math.random()*20+5));
+    actChart=new Chart(ac,{type:'line',data:{labels,datasets:[{label:'نشاط النظام',data:vals,fill:true,backgroundColor:'rgba(99,102,241,.08)',borderColor:'rgba(99,102,241,.6)',borderWidth:2,pointRadius:4,pointBackgroundColor:'rgba(99,102,241,.8)',tension:.4}]},options:{responsive:true,plugins:{legend:{labels:{color:'#94a3b8'}}},scales:{y:{beginAtZero:true,grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#64748b'}},x:{grid:{display:false},ticks:{color:'#94a3b8'}}}}});
+  }catch(e){ console.error(e); }
+}
+
+function openM(id){ document.getElementById(id).classList.add('open'); }
+function closeM(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',e=>{ if(e.target===el) el.classList.remove('open'); }));
+
+let toastT;
+function toast(msg,type='info'){
+  const t=document.getElementById('toast');
+  const icons={success:'fa-circle-check',error:'fa-circle-xmark',info:'fa-circle-info'};
+  t.innerHTML=`<i class="fas ${icons[type]||icons.info}"></i> ${msg}`;
+  t.className=`toast ${type} show`;
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+function esc(s){ return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function planL(p){ return p==='basic'?'أساسية':p==='premium'?'احترافية':p==='ultimate'?'أسطورية':p==='admin'?'مسؤول':p||'أساسية'; }
+async function logout(){ await fetch('/api/logout',{method:'POST'}); location.href='/login'; }
+
+setInterval(async()=>{ try{ const r=await fetch('/api/system/metrics'); const d=await r.json(); document.getElementById('sysCPU').textContent=(d.cpu||0)+'%'; document.getElementById('sysRAM').textContent=(d.memory||0)+'%'; document.getElementById('sysDisk').textContent=(d.disk||0)+'%'; }catch(e){} },10000);
+
+init();
+</script>
+</body>
+</html>
